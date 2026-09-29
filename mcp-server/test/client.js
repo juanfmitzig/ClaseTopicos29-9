@@ -39,4 +39,28 @@ for (const issue of issues) {
   console.log(`   - ${issue.name} [${issue.field}] ${JSON.stringify(issue.value)}: ${issue.problem}`);
 }
 
+// 4. update_product: se reescribe la categoría con el MISMO valor,
+//    así se prueba la mutación de punta a punta sin alterar los datos.
+const same = await client.callTool({
+  name: 'update_product',
+  arguments: { id: first.id, category: first.category },
+});
+console.log(
+  `\n✏️  update_product (mismo valor) → isError=${same.isError ?? false}, categoría "${same.structuredContent?.product.category}"`
+);
+
+// 5. Validaciones (ninguna llega a modificar la base)
+const cases = [
+  ['Precio negativo', { id: first.id, price: -5 }],
+  ['Stock con decimales', { id: first.id, stock: 1.5 }],
+  ['Categoría vacía', { id: first.id, category: '   ' }],
+  ['Id inválido', { id: 'abc', stock: 1 }],
+  ['Sin campos', { id: first.id }],
+  ['Id inexistente', { id: '000000000000000000000000', stock: 1 }],
+];
+for (const [label, args] of cases) {
+  const res = await client.callTool({ name: 'update_product', arguments: args });
+  console.log(`🚫 ${label} → isError=${res.isError}: ${res.content[0].text.replace(/\s+/g, ' ').slice(0, 110)}`);
+}
+
 await client.close();

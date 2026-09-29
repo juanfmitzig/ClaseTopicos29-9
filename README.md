@@ -31,7 +31,8 @@ src/
 ├── graphql/typeDefs.js   PASO 3: esquema SDL (cómo se EXPONEN los datos)
 ├── graphql/resolvers.js  PASO 4: lógica de cada query/mutation
 ├── index.js              PASO 5: servidor Express + Apollo
-└── seed.js               datos de ejemplo
+├── data/catalogo-original.json  los 50 productos del ejercicio (con errores a propósito)
+└── seed.js               carga ese catálogo
 ```
 
 Cada archivo tiene comentarios explicando qué hace cada parte.
@@ -40,17 +41,23 @@ Cada archivo tiene comentarios explicando qué hace cada parte.
 
 ```bash
 npm install
-cp .env.example .env      # y completa MONGODB_URI
-npm run seed              # carga productos de ejemplo
+cp .env.example .env      # completa MONGODB_URI y MONGODB_DB_NAME
+npm run seed              # carga los 50 productos, solo si "products" está vacía
 npm run dev               # reinicia al guardar cambios
 ```
+
+`npm run seed -- --reset` **borra** la colección y vuelve a cargar el catálogo original.
 
 Abre http://localhost:4000/graphql → se muestra **Apollo Sandbox**.
 
 > **Ojo con la URI de Atlas:** el panel de Atlas la muestra como
 > `mongodb+srv://<usuario>:<password>@...`. Los signos `< >` son solo marcadores:
-> se deben **quitar**. Además conviene agregar el nombre de la base antes del `?`:
-> `...mongodb.net/tienda?retryWrites=true&w=majority`
+> se deben **quitar**.
+>
+> **Nombre de la base:** la cadena que da Atlas (`...mongodb.net/?appName=...`) **no incluye la base**,
+> y en ese caso Mongoose se conecta a la base `test` sin avisar. Indica la base donde creaste
+> la colección `products` con `MONGODB_DB_NAME`. Al arrancar, el servidor muestra en los logs
+> a qué base se conectó y cuántos productos ve, y `GET /health` devuelve lo mismo.
 
 ## 4. Introspección y Apollo Sandbox
 
@@ -147,9 +154,11 @@ mutation { deleteProduct(id: "PEGA_AQUI_UN_ID") { id name } }
    - **Health Check Path:** `/health`
 4. En **Environment** agrega la variable:
    - `MONGODB_URI` = la misma URI de tu `.env`
+   - `MONGODB_DB_NAME` = el nombre de la base donde está `products`
    (`PORT` la pone Render automáticamente; `DNS_SERVERS` no hace falta).
 5. Deploy. Tu API quedará en `https://<tu-servicio>.onrender.com/graphql`.
-6. (Opcional) Para cargar datos de ejemplo: ejecuta `npm run seed` en local desde una red que permita conectarse a Atlas, o crea productos con la mutación `createProduct` desde Sandbox. (La pestaña **Shell** de Render solo está en planes de pago.)
+6. Comprueba `https://<tu-servicio>.onrender.com/health`: debe mostrar tu base y `"products": 50`.
+7. (Opcional) Para cargar el catálogo: ejecuta `npm run seed` en local desde una red que permita conectarse a Atlas, o crea productos con la mutación `createProduct` desde Sandbox. (La pestaña **Shell** de Render solo está en planes de pago.)
 
 > En el plan gratuito Render "duerme" el servicio tras 15 min sin uso; la primera petición puede tardar ~1 min.
 

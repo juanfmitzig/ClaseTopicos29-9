@@ -23,7 +23,9 @@ function normalize(text) {
 const hasLetters = (text) => /\p{L}/u.test(text);
 
 // Problemas de formato de un texto (espacios y mayúsculas).
-function checkText(value, { required }) {
+// mixedCase: revisar "ElectRónica". Solo para categorías: en nombres
+// es normal que haya marcas como "NextGen" o "WiFi".
+function checkText(value, { required, mixedCase = false }) {
   const problems = [];
 
   if (value === null || value === undefined) {
@@ -35,7 +37,7 @@ function checkText(value, { required }) {
     return problems;
   }
   if (value.trim() === '') {
-    if (required) problems.push('Texto vacío en un campo obligatorio');
+    problems.push(required ? 'Texto vacío en un campo obligatorio' : 'Texto vacío');
     return problems;
   }
 
@@ -45,11 +47,12 @@ function checkText(value, { required }) {
   if (hasLetters(value)) {
     if (value === value.toUpperCase() && value.length > 3) {
       problems.push('Todo en MAYÚSCULAS');
-    } else if (value === value.toLowerCase()) {
+    } else if (value === value.toLowerCase() && /^\p{L}/u.test(value.trim())) {
+      // (si empieza con un número, como "32 puntas...", no es un error)
       problems.push('Todo en minúsculas');
     } else if (/^\p{Ll}/u.test(value.trim())) {
       problems.push('Empieza con minúscula');
-    } else if (/\p{Ll}\p{Lu}/u.test(value) && !/\p{Lu}{2,}/u.test(value)) {
+    } else if (mixedCase && /\p{Ll}\p{Lu}/u.test(value) && !/\p{Lu}{2,}/u.test(value)) {
       // "ElectRónica": mayúscula en medio de una palabra
       problems.push('Mezcla de mayúsculas y minúsculas dentro de una palabra');
     }
@@ -146,7 +149,7 @@ export function findInconsistencies(products) {
 
   for (const p of products) {
     add(p, 'name', checkText(p.name, { required: true }));
-    add(p, 'category', checkText(p.category, { required: true }));
+    add(p, 'category', checkText(p.category, { required: true, mixedCase: true }));
     add(p, 'description', checkText(p.description, { required: false }));
     add(p, 'price', checkNumber(p.price, { integer: false, allowZero: false, maxDecimals: 2 }));
     add(p, 'stock', checkNumber(p.stock, { integer: true, allowZero: true }));

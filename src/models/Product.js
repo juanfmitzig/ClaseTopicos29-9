@@ -54,4 +54,6 @@ const productSchema = new mongoose.Schema(
 // por eso en GraphQL podemos declarar el campo "id: ID!" sin
 // escribir un resolver extra (siempre que NO usemos .lean()).
 
-export const Product = mongoose.model('Product', productSchema);
+// El 3er argumento fija el nombre de la colección: "products", la
+// misma que se crea en Atlas (sin depender de la pluralización automática).
+export const Product = mongoose.model('Product', productSchema, 'products');

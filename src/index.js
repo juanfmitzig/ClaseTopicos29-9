@@ -8,6 +8,7 @@
 import express from 'express';
 import cors from 'cors';
 import http from 'node:http';
+import mongoose from 'mongoose';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
@@ -57,7 +58,13 @@ async function startServer() {
   // 5.4 Rutas
   // Ruta simple para comprobar que el servicio vive (Render la usa
   // como "Health Check Path").
-  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+  // Además informa la base y cuántos productos ve, para comprobar
+  // desde el navegador que la API lee la base correcta.
+  app.get('/health', async (_req, res) => {
+    const db = mongoose.connection.db;
+    const products = await db.collection('products').countDocuments();
+    res.json({ status: 'ok', database: db.databaseName, products });
+  });
 
   app.get('/', (_req, res) => res.redirect('/graphql'));
 

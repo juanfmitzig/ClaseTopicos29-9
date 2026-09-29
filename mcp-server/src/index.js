@@ -4,8 +4,11 @@
 // -------------------------------------------------------------
 // MCP es un protocolo estándar para que un asistente de IA (Claude,
 // por ejemplo) use "herramientas" externas. Este servidor expone
-// dos herramientas de SOLO LECTURA que, por debajo, llaman a
-// nuestra API GraphQL:
+// tres herramientas que, por debajo, llaman a nuestra API GraphQL:
+//   - get_products          (lectura)
+//   - update_product        (modifica precio, stock o categoría)
+//   - find_inconsistencies  (lectura: detecta errores en los datos)
+//
 //
 //   Asistente IA ──MCP (stdio)──► este servidor ──HTTP/GraphQL──► Render
 //
@@ -33,6 +36,12 @@ import { findInconsistencies } from './inconsistencies.js';
 //      ve para saber qué parámetros existen y de qué tipo son.
 // Por eso las descripciones (.describe) son importantes: son la
 // "documentación" que lee la IA.
+
+// Un id de MongoDB (ObjectId) son 24 caracteres hexadecimales.
+const productId = z
+  .string()
+  .regex(/^[a-f\d]{24}$/i, 'Debe ser un ObjectId de MongoDB (24 caracteres hexadecimales)')
+  .describe('ID del producto (ObjectId de MongoDB, 24 caracteres hexadecimales)');
 
 // Forma de un producto tal como lo devuelve la API GraphQL.
 // Es PERMISIVA a propósito: el objetivo es detectar datos
@@ -138,11 +147,88 @@ server.registerTool(
 );
 
 // -------------------------------------------------------------
-// PASO 4: Herramienta find_inconsistencies
+// PASO 4: Herramienta update_product
+// -------------------------------------------------------------
+server.registerTool(
+  'update_product',
+  {
+    title: 'Actualizar producto',
+    description:
+      'Modifica el precio, el stock y/o la categoría de un producto a partir de su ID. ' +
+      'Solo se cambian los campos enviados; se debe enviar al menos uno.',
+    inputSchema: {
+      id: productId,
+      price: z
+        .number()
+        .nonnegative('El precio no puede ser negativo')
+        .optional()
+        .describe('Nuevo precio (número mayor o igual a 0)'),
+      stock: z
+        .number()
+        .int('El stock debe ser un número entero')
+        .nonnegative('El stock no puede ser negativo')
+        .optional()
+        .describe('Nuevo stock (entero mayor o igual a 0)'),
+      category: z
+        .string()
+        .trim()
+        .min(1, 'La categoría no puede estar vacía')
+        .optional()
+        .describe('Nueva categoría (ej. "Electrónica", "Hogar")'),
+    },
+    outputSchema: {
+      product: productSchema.describe('Producto ya actualizado'),
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false, // modifica, pero no borra
+      idempotentHint: true, // repetir la misma llamada deja el mismo resultado
+      openWorldHint: true,
+    },
+  },
+  // Gracias a Zod, los argumentos ya llegan validados y tipados.
+  async ({ id, price, stock, category }) => {
+    // Construimos el input solo con los campos que se enviaron.
+    const input = Object.fromEntries(
+      Object.entries({ price, stock, category }).filter(([, v]) => v !== undefined)
+    );
+
+    if (Object.keys(input).length === 0) {
+      return toolError('debes indicar al menos uno de estos campos: price, stock o category.');
+    }
+
+    try {
+      // Usamos VARIABLES en vez de concatenar texto en la consulta:
+      // evita errores de formato e inyecciones, igual que en SQL.
+      const data = await graphqlRequest(
+        /* GraphQL */ `
+          mutation UpdateProduct($id: ID!, $input: UpdateProductInput!) {
+            updateProduct(id: $id, input: $input) { ...ProductFields }
+          }
+          ${PRODUCT_FIELDS}
+        `,
+        { id, input }
+      );
+
+      const result = { product: data.updateProduct };
+
+      return {
+        content: [
+          { type: 'text', text: `Producto actualizado:\n${JSON.stringify(result.product, null, 2)}` },
+        ],
+        structuredContent: result,
+      };
+    } catch (err) {
+      return toolError(`no se pudo actualizar el producto ${id}: ${err.message}`);
+    }
+  }
+);
+
+// -------------------------------------------------------------
+// PASO 5: Herramienta find_inconsistencies
 // -------------------------------------------------------------
 // SOLO IDENTIFICA problemas de formato en los datos; no corrige
-// nada. Por eso este servidor no expone ninguna herramienta que
-// modifique la base de datos.
+// nada (para corregir está update_product).
 server.registerTool(
   'find_inconsistencies',
   {
@@ -180,7 +266,7 @@ server.registerTool(
 );
 
 // -------------------------------------------------------------
-// PASO 5: Conectar el transporte stdio
+// PASO 6: Conectar el transporte stdio
 // -------------------------------------------------------------
 const transport = new StdioServerTransport();
 await server.connect(transport);

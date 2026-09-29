@@ -1,0 +1,352 @@
+[
+  {
+    "name": "Notebook Gamer X1",
+    "price": -1200.5,
+    "stock": 15,
+    "category": "electronica",
+    "description": "Alta gama con RTX 4060 y pantalla 144Hz"
+  },
+  {
+    "name": "Teclado Mecánico RGB",
+    "price": 45,
+    "stock": -1,
+    "category": "Electronica",
+    "description": ""
+  },
+  {
+    "name": "Mouse Inalámbrico Ergonómico",
+    "price": 0,
+    "stock": 120,
+    "category": "ACCESORIOS",
+    "description": "Diseño vertical con batería recargable"
+  },
+  {
+    "name": "Monitor Curvo 27 pulgadas",
+    "price": 320,
+    "stock": -5,
+    "category": "electronica",
+    "description": "Resolución QHD 2K ideal para diseño y gaming"
+  },
+  {
+    "name": "Silla de Oficina Ejecutiva",
+    "price": 250,
+    "stock": 8,
+    "category": "Hogar",
+    "description": ""
+  },
+  {
+    "name": "Auriculares Bluetooth ANC",
+    "price": 60,
+    "stock": 30,
+    "category": "ELECTRONICA",
+    "description": "Cancelación de ruido activa y 40hs de autonomía"
+  },
+  {
+    "name": "Cafetera Express Automática",
+    "price": 450,
+    "stock": 12,
+    "category": "hogar",
+    "description": "Presión de 15 bares con espumador de leche integrado"
+  },
+  {
+    "name": "Zapatillas Urbanas Running",
+    "price": 85.5,
+    "stock": 0,
+    "category": "Deportes",
+    "description": "Suela amortiguada para running y uso diario"
+  },
+  {
+    "name": "Taladro Percutor Inalámbrico",
+    "price": 140,
+    "stock": 22,
+    "category": "Herramientas",
+    "description": "Incluye dos baterías de litio y maletín de transporte"
+  },
+  {
+    "name": "Mochila Antirrobo para Notebook",
+    "price": -35,
+    "stock": 45,
+    "category": "accesorios",
+    "description": "Puerto de carga USB y material impermeable"
+  },
+  {
+    "name": "Smart TV 55 Pulgadas 4K",
+    "price": 650,
+    "stock": 6,
+    "category": "ELECTRONICA",
+    "description": "Tecnología LED con HDR10 y sistema operativo integrado"
+  },
+  {
+    "name": "Licuadora de Alta Potencia",
+    "price": 75,
+    "stock": -1,
+    "category": "Hogar",
+    "description": "Vasija de vidrio templado de 1.5 litros"
+  },
+  {
+    "name": "Juego de Sartenes Antiadherentes",
+    "price": 55,
+    "stock": 18,
+    "category": "hogar",
+    "description": "Set x3 piezas de aluminio forjado"
+  },
+  {
+    "name": "Bicicleta Mountain Bike R29",
+    "price": 520,
+    "stock": 4,
+    "category": "deportes",
+    "description": "Frenos a disco hidráulicos y 24 velocidades"
+  },
+  {
+    "name": "Plancha a Vapor Vertical",
+    "price": 40,
+    "stock": -2,
+    "category": "Hogar",
+    "description": ""
+  },
+  {
+    "name": "Consola de Videojuegos NextGen",
+    "price": 799.99,
+    "stock": 9,
+    "category": "electronica",
+    "description": "1TB de almacenamiento SSD y lector de Blu-ray"
+  },
+  {
+    "name": "Impresora Multifunción Tinta Continua",
+    "price": 230,
+    "stock": 14,
+    "category": "Electronica",
+    "description": "Impresión a color de alto rendimiento por página"
+  },
+  {
+    "name": "Escritorio Minimalista en L",
+    "price": 190,
+    "stock": 7,
+    "category": "hogar",
+    "description": "Estructura de acero y superficie de madera melamina"
+  },
+  {
+    "name": "Kit de Mancuernas Ajustables",
+    "price": 110,
+    "stock": 25,
+    "category": "Deportes",
+    "description": "Permite cambiar el peso de 2kg a 20kg fácilmente"
+  },
+  {
+    "name": "Cámara de Seguridad WiFi 360",
+    "price": 45,
+    "stock": 50,
+    "category": "electronica",
+    "description": "Visión nocturna y detección de movimiento por IA"
+  },
+  {
+    "name": "Colchón de Espuma Alta Densidad",
+    "price": 380,
+    "stock": 5,
+    "category": "Hogar",
+    "description": "Medidas 140x190 cm apto hasta 100kg por lado"
+  },
+  {
+    "name": "Aspiradora Robot Inteligente",
+    "price": 290,
+    "stock": 11,
+    "category": "hogar",
+    "description": ""
+  },
+  {
+    "name": "Parlante Bluetooth Portátil",
+    "price": 0,
+    "stock": 60,
+    "category": "ELECTRONICA",
+    "description": "Resistente al agua IP67 y sonido 360 grados"
+  },
+  {
+    "name": "Cinta de Correr Eléctrica",
+    "price": 850,
+    "stock": 3,
+    "category": "Deportes",
+    "description": "Motor de 2.0 HP y pantalla LCD con programas de entrenamiento"
+  },
+  {
+    "name": "Set de Herramientas Manuales 100 Pzas",
+    "price": 95,
+    "stock": 20,
+    "category": "Herramientas",
+    "description": "Llaves, tubos y destornilladores en caja metálica"
+  },
+  {
+    "name": "Cava de Vinos para 12 Botellas",
+    "price": 210,
+    "stock": 8,
+    "category": "Hogar",
+    "description": "Control digital de temperatura táctil"
+  },
+  {
+    "name": "Proyector LED Portátil Full HD",
+    "price": 175,
+    "stock": 16,
+    "category": "electronica",
+    "description": "Conectividad HDMI, USB y duplicación de pantalla inalámbrica"
+  },
+  {
+    "name": "Reloj Smartwatch Deportivo",
+    "price": 80,
+    "stock": 35,
+    "category": "Electronica",
+    "description": "Monitoreo de frecuencia cardíaca, oxigenación y GPS integrado"
+  },
+  {
+    "name": "Secador de Cabello Profesional",
+    "price": 50,
+    "stock": -1,
+    "category": "Hogar",
+    "description": "Motor AC de alta potencia con tecnología iónica anti-frizz"
+  },
+  {
+    "name": "Set de Mancuernas Neopreno 5kg",
+    "price": 35,
+    "stock": 40,
+    "category": "deportes",
+    "description": ""
+  },
+  {
+    "name": "Hidrolavadora Alta Presión",
+    "price": 220,
+    "stock": 10,
+    "category": "Herramientas",
+    "description": "1800W con accesorios para lavado de autos y patios"
+  },
+  {
+    "name": "Sillón esquinero 3 cuerpos",
+    "price": -600,
+    "stock": 2,
+    "category": "hogar",
+    "description": "Tapizado en chenille antimanchas con almohadones con cierre"
+  },
+  {
+    "name": "Barra dominadas multifunción",
+    "price": 45,
+    "stock": 28,
+    "category": "Deportes",
+    "description": "Fácil instalación en marco de puerta sin tornillos"
+  },
+  {
+    "name": "Freidora de Aire Airfryer 4L",
+    "price": 130,
+    "stock": 19,
+    "category": "Hogar",
+    "description": "Cocción sin aceite con panel digital táctil y temporizador"
+  },
+  {
+    "name": "Disco Sólido SSD NVMe 1TB",
+    "price": 90,
+    "stock": 55,
+    "category": "electronica",
+    "description": "Velocidades de lectura de hasta 3500 MB/s"
+  },
+  {
+    "name": "Pava Eléctrica con Control de Temperatura",
+    "price": 65,
+    "stock": -1,
+    "category": "hogar",
+    "description": "Cuerpo de acero inoxidable y función mantener caliente"
+  },
+  {
+    "name": "Linterna LED Recargable de Alta Potencia",
+    "price": 25,
+    "stock": 70,
+    "category": "Herramientas",
+    "description": "Alcance de 500 metros con zoom ajustable y batería externa"
+  },
+  {
+    "name": "Lámpara de Escritorio LED USB",
+    "price": 0,
+    "stock": 45,
+    "category": "ELECTRONICA",
+    "description": "Regulador de intensidad lumínica y 3 tonos de luz"
+  },
+  {
+    "name": "Mesa de Ping Pong Plegable",
+    "price": 340,
+    "stock": 4,
+    "category": "Deportes",
+    "description": "Incluye red, soportes y ruedas para traslado"
+  },
+  {
+    "name": "Estufa Halógena de Pie",
+    "price": 48,
+    "stock": 25,
+    "category": "Hogar",
+    "description": "Dos niveles de potencia y sistema de seguridad antivuelco"
+  },
+  {
+    "name": "Router Wi-Fi 6 Doble Banda",
+    "price": 115,
+    "stock": 22,
+    "category": "electronica",
+    "description": "Alta velocidad y cobertura para hogares hiperconectados"
+  },
+  {
+    "name": "Silla Gamer Ergonómica",
+    "price": 280,
+    "stock": 10,
+    "category": "Electronica",
+    "description": "Reclinable con almohadones lumbares y cervicales ajustables"
+  },
+  {
+    "name": "Kit de Destornilladores de Precisión",
+    "price": 18,
+    "stock": 80,
+    "category": "Herramientas",
+    "description": "32 puntas intercambiables para reparación de electrónica y móviles"
+  },
+  {
+    "name": "Colchoneta de Yoga Mat Antideslizante",
+    "price": 22,
+    "stock": 65,
+    "category": "Deportes",
+    "description": "Espesor de 10mm para máxima comodidad en ejercicios de suelo"
+  },
+  {
+    "name": "Horno Eléctrico de Mesa 45L",
+    "price": 195,
+    "stock": 7,
+    "category": "Hogar",
+    "description": ""
+  },
+  {
+    "name": "Placa de Video Dedicada 12GB",
+    "price": 680,
+    "stock": -3,
+    "category": "electronica",
+    "description": "Arquitectura avanzada para renderizado y gaming exigente"
+  },
+  {
+    "name": "Secarropa Centrífugo 6kg",
+    "price": 160,
+    "stock": 13,
+    "category": "hogar",
+    "description": "Sistema de traba de seguridad en tapa y tambor de acero"
+  },
+  {
+    "name": "Cortadora de Césped Eléctrica",
+    "price": 210,
+    "stock": 9,
+    "category": "Herramientas",
+    "description": "Motor de 1500W con bolsa recolectora de 40 litros"
+  },
+  {
+    "name": "Cámara Deportiva 4K sumergible",
+    "price": 145,
+    "stock": 21,
+    "category": "ELECTRONICA",
+    "description": "Incluye carcasa acuática y kit de soportes para casco y manubrio"
+  },
+  {
+    "name": "Organizador de Zapatos Modular",
+    "price": 30,
+    "stock": 35,
+    "category": "Hogar",
+    "description": "Estructura armable de estantes plásticos apilables"
+  }
+]

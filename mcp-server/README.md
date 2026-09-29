@@ -1,6 +1,6 @@
 # Servidor MCP de Productos
 
-Servidor **MCP (Model Context Protocol)** con transporte **stdio**. Permite que un asistente de IA (Claude Desktop, Claude Code, etc.) consulte productos e **identifique inconsistencias en los datos** usando la API GraphQL desplegada en Render.
+Servidor **MCP (Model Context Protocol)** con transporte **stdio**. Permite que un asistente de IA (Claude Desktop, Claude Code, etc.) consulte productos, **identifique inconsistencias en los datos** y los corrija usando la API GraphQL desplegada en Render.
 
 ```
 Asistente IA ──JSON-RPC por stdio──► mcp-server ──POST /graphql──► https://clasetopicos29-9.onrender.com
@@ -11,14 +11,15 @@ Asistente IA ──JSON-RPC por stdio──► mcp-server ──POST /graphql─
 | Tool | Parámetros | Qué hace |
 |---|---|---|
 | `get_products` | ninguno | Lista todos los productos (`query { products { ... } }`) |
-| `find_inconsistencies` | ninguno | Lista los errores de formato de los datos |
+| `update_product` | `id` (string, ObjectId **obligatorio**), `price` (number ≥ 0), `stock` (entero ≥ 0), `category` (string no vacío) | Modifica un producto (`mutation updateProduct(id, input)`) |
+| `find_inconsistencies` | ninguno | Lista los errores de formato de los datos (solo lectura) |
 
-Las dos herramientas son de **solo lectura**: el servidor no expone ninguna operación que modifique la base de datos. La idea es **identificar** los problemas, no corregirlos.
+En `update_product` los tres campos son opcionales, pero hay que enviar al menos uno. Es la única herramienta que modifica la base: `get_products` y `find_inconsistencies` solo leen.
 
 `find_inconsistencies` (lógica en `src/inconsistencies.js`) detecta:
-- Mayúsculas/minúsculas: todo en MAYÚSCULAS, todo en minúsculas, empieza con minúscula, mezcla dentro de una palabra (`ElectRónica`).
-- Categorías escritas de distintas formas (`Muebles` / `muebles` / `Electronica` vs `Electrónica`).
-- Espacios al inicio/final o dobles, textos vacíos y valores nulos.
+- Mayúsculas/minúsculas: todo en MAYÚSCULAS, todo en minúsculas, empieza con minúscula y, en categorías, mezcla dentro de una palabra (`ElectRónica`).
+- Categorías escritas de distintas formas (`Hogar` / `hogar` / `ELECTRONICA` vs `Electronica`).
+- Espacios al inicio/final o dobles, textos vacíos (incluidas las descripciones) y valores nulos.
 - Precios negativos, en 0 o con más de 2 decimales.
 - Stock negativo o con decimales.
 - Nombres duplicados (ignorando mayúsculas, tildes y espacios).
@@ -30,17 +31,17 @@ Cada problema se devuelve como `{ id, name, field, value, problem }`.
 ### ¿Cómo se tipan los parámetros?
 
 Con **Zod** (`src/index.js`). El SDK usa esos esquemas para:
-1. **Validar** los argumentos antes de ejecutar la herramienta.
+1. **Validar** los argumentos antes de ejecutar la herramienta. Por ejemplo, un `price: -5` en `update_product` se rechaza con un error de validación.
 2. **Publicar** un JSON Schema en `tools/list`, que es lo que lee el modelo para saber qué parámetros existen y de qué tipo son.
 
-Las dos herramientas también declaran un `outputSchema`, así que devuelven `structuredContent` tipado además del texto.
+Las tres herramientas también declaran un `outputSchema`, así que devuelven `structuredContent` tipado además del texto.
 
 ## Uso
 
 ```bash
 cd mcp-server
 npm install
-npm run test:client   # cliente de prueba: lista las tools y las invoca
+npm run test:client   # cliente de prueba: lista las tools y las invoca (no altera los datos)
 npm run inspector     # abre MCP Inspector (interfaz web para probar las tools)
 ```
 
