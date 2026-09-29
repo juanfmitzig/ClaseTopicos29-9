@@ -1,0 +1,23 @@
+{
+  "name": "mcp-productos",
+  "version": "1.0.0",
+  "description": "Servidor MCP (stdio) que expone la API GraphQL de productos como herramientas",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "mcp-productos": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test:client": "node test/client.js",
+    "inspector": "npx @modelcontextprotocol/inspector node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "zod": "^4.6.5"
+  }
+}

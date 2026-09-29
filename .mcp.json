@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "productos": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-server/src/index.js"],
+      "env": {
+        "GRAPHQL_URL": "https://clasetopicos29-9.onrender.com/graphql"
+      }
+    }
+  }
+}
