@@ -30,25 +30,13 @@ console.log(`\n📦 get_products → ${list.structuredContent.count} productos`)
 const first = list.structuredContent.products[0];
 console.log(`   Primero: ${first.name} | precio ${first.price} | stock ${first.stock}`);
 
-// 3. update_product: cambiamos el stock y luego lo restauramos
-const updated = await client.callTool({
-  name: 'update_product',
-  arguments: { id: first.id, stock: first.stock + 1 },
-});
-console.log(`\n✏️  update_product → stock ${first.stock} ➜ ${updated.structuredContent.product.stock}`);
-
-await client.callTool({ name: 'update_product', arguments: { id: first.id, stock: first.stock } });
-console.log(`   (restaurado a ${first.stock})`);
-
-// 4. Validación de tipos: un precio negativo debe ser rechazado
-const invalid = await client.callTool({
-  name: 'update_product',
-  arguments: { id: first.id, price: -5 },
-});
-console.log(`\n🚫 Precio negativo → isError=${invalid.isError}: ${invalid.content[0].text.slice(0, 120)}`);
-
-// 5. Sin campos para actualizar
-const empty = await client.callTool({ name: 'update_product', arguments: { id: first.id } });
-console.log(`🚫 Sin campos → isError=${empty.isError}: ${empty.content[0].text}`);
+// 3. find_inconsistencies: solo identifica, no modifica nada
+const check = await client.callTool({ name: 'find_inconsistencies', arguments: {} });
+const { totalProducts, totalIssues, issues } = check.structuredContent;
+console.log(`
+🔍 find_inconsistencies → ${totalIssues} problemas en ${totalProducts} productos`);
+for (const issue of issues) {
+  console.log(`   - ${issue.name} [${issue.field}] ${JSON.stringify(issue.value)}: ${issue.problem}`);
+}
 
 await client.close();
