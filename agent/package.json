@@ -1,0 +1,20 @@
+{
+  "name": "agent",
+  "version": "1.0.0",
+  "description": "Agente (Vercel AI SDK) que audita y corrige el catálogo usando el MCP de productos",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=../.env src/index.js",
+    "test:audit": "node --env-file-if-exists=../.env test/offline.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@ai-sdk/groq": "^4.0.71",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "ai": "^7.0.154",
+    "zod": "^4.6.7"
+  }
+}
