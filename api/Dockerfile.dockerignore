@@ -4,8 +4,7 @@ node_modules
 .gitignore
 .env
 .env.*
-agent
-mcp-server
-Dockerfile
-.dockerignore
 *.md
+api
+**/test
+*.dockerignore
