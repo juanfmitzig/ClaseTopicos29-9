@@ -1,6 +1,6 @@
 # Servidor MCP de Productos
 
-Servidor **MCP (Model Context Protocol)** con transporte **stdio**. Permite que un asistente de IA (Claude Desktop, Claude Code, etc.) consulte y modifique productos usando la API GraphQL desplegada en Render.
+Servidor **MCP (Model Context Protocol)** con transporte **stdio**. Permite que un asistente de IA (Claude Desktop, Claude Code, etc.) consulte productos e **identifique inconsistencias en los datos** usando la API GraphQL desplegada en Render.
 
 ```
 Asistente IA ──JSON-RPC por stdio──► mcp-server ──POST /graphql──► https://clasetopicos29-9.onrender.com
@@ -8,17 +8,29 @@ Asistente IA ──JSON-RPC por stdio──► mcp-server ──POST /graphql─
 
 ## Herramientas
 
-| Tool | Parámetros | Operación GraphQL |
+| Tool | Parámetros | Qué hace |
 |---|---|---|
-| `get_products` | ninguno | `query { products { ... } }` |
-| `update_product` | `id` (string, ObjectId **obligatorio**), `price` (number ≥ 0), `stock` (entero ≥ 0), `category` (string no vacío) | `mutation updateProduct(id, input)` |
+| `get_products` | ninguno | Lista todos los productos (`query { products { ... } }`) |
+| `find_inconsistencies` | ninguno | Lista los errores de formato de los datos |
 
-En `update_product` los tres campos son opcionales, pero hay que enviar al menos uno.
+Las dos herramientas son de **solo lectura**: el servidor no expone ninguna operación que modifique la base de datos. La idea es **identificar** los problemas, no corregirlos.
+
+`find_inconsistencies` (lógica en `src/inconsistencies.js`) detecta:
+- Mayúsculas/minúsculas: todo en MAYÚSCULAS, todo en minúsculas, empieza con minúscula, mezcla dentro de una palabra (`ElectRónica`).
+- Categorías escritas de distintas formas (`Muebles` / `muebles` / `Electronica` vs `Electrónica`).
+- Espacios al inicio/final o dobles, textos vacíos y valores nulos.
+- Precios negativos, en 0 o con más de 2 decimales.
+- Stock negativo o con decimales.
+- Nombres duplicados (ignorando mayúsculas, tildes y espacios).
+
+Cada problema se devuelve como `{ id, name, field, value, problem }`.
+
+> **Límite:** la API GraphQL declara `price: Float!` y `stock: Int!`. Si en la base hay un precio nulo o un stock con decimales, la API falla antes de llegar al MCP y la herramienta devuelve ese error.
 
 ### ¿Cómo se tipan los parámetros?
 
 Con **Zod** (`src/index.js`). El SDK usa esos esquemas para:
-1. **Validar** los argumentos antes de ejecutar la herramienta. Por ejemplo, un `price: -5` se rechaza con un error de validación.
+1. **Validar** los argumentos antes de ejecutar la herramienta.
 2. **Publicar** un JSON Schema en `tools/list`, que es lo que lee el modelo para saber qué parámetros existen y de qué tipo son.
 
 Las dos herramientas también declaran un `outputSchema`, así que devuelven `structuredContent` tipado además del texto.
@@ -54,7 +66,7 @@ claude mcp add productos -- node mcp-server/src/index.js
   }
 }
 ```
-Reinicia Claude Desktop y pide, por ejemplo: *"Muéstrame los productos sin stock y pon 20 unidades al Teclado Mecánico"*.
+Reinicia Claude Desktop y pide, por ejemplo: *"Busca las inconsistencias en los datos de productos"*.
 
 ## Nota importante sobre stdio
 

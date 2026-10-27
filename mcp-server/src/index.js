@@ -4,7 +4,8 @@
 // -------------------------------------------------------------
 // MCP es un protocolo estándar para que un asistente de IA (Claude,
 // por ejemplo) use "herramientas" externas. Este servidor expone
-// dos herramientas que, por debajo, llaman a nuestra API GraphQL:
+// dos herramientas de SOLO LECTURA que, por debajo, llaman a
+// nuestra API GraphQL:
 //
 //   Asistente IA ──MCP (stdio)──► este servidor ──HTTP/GraphQL──► Render
 //
@@ -20,6 +21,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { graphqlRequest, GRAPHQL_URL } from './graphqlClient.js';
+import { findInconsistencies } from './inconsistencies.js';
 
 // -------------------------------------------------------------
 // PASO 1: Esquemas de tipos con Zod
@@ -32,23 +34,29 @@ import { graphqlRequest, GRAPHQL_URL } from './graphqlClient.js';
 // Por eso las descripciones (.describe) son importantes: son la
 // "documentación" que lee la IA.
 
-// Un id de MongoDB (ObjectId) son 24 caracteres hexadecimales.
-const productId = z
-  .string()
-  .regex(/^[a-f\d]{24}$/i, 'Debe ser un ObjectId de MongoDB (24 caracteres hexadecimales)')
-  .describe('ID del producto (ObjectId de MongoDB, 24 caracteres hexadecimales)');
-
 // Forma de un producto tal como lo devuelve la API GraphQL.
+// Es PERMISIVA a propósito: el objetivo es detectar datos
+// incorrectos, así que no debe rechazar un stock con decimales o
+// un nombre nulo; esos casos los reporta find_inconsistencies.
 const productSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  price: z.number(),
-  stock: z.number().int(),
-  category: z.string(),
+  name: z.string().nullable(),
+  price: z.number().nullable(),
+  stock: z.number().nullable(),
+  category: z.string().nullable(),
   description: z.string().nullable(),
 });
 
-// Campos que pedimos en ambas operaciones (fragmento reutilizable).
+// Forma de cada inconsistencia encontrada.
+const issueSchema = z.object({
+  id: z.string().describe('ID del producto afectado'),
+  name: z.string().nullable().describe('Nombre del producto afectado'),
+  field: z.string().describe('Campo con el problema'),
+  value: z.unknown().describe('Valor actual del campo'),
+  problem: z.string().describe('Descripción del problema'),
+});
+
+// Campos que pedimos a la API (fragmento reutilizable).
 const PRODUCT_FIELDS = /* GraphQL */ `
   fragment ProductFields on Product {
     id
@@ -68,6 +76,17 @@ function toolError(message) {
     isError: true,
     content: [{ type: 'text', text: `Error: ${message}` }],
   };
+}
+
+// Pide todos los productos a la API GraphQL (lo usan ambas herramientas).
+async function fetchProducts() {
+  const data = await graphqlRequest(/* GraphQL */ `
+    query GetProducts {
+      products { ...ProductFields }
+    }
+    ${PRODUCT_FIELDS}
+  `);
+  return data.products;
 }
 
 // -------------------------------------------------------------
@@ -103,14 +122,8 @@ server.registerTool(
   },
   async () => {
     try {
-      const data = await graphqlRequest(/* GraphQL */ `
-        query GetProducts {
-          products { ...ProductFields }
-        }
-        ${PRODUCT_FIELDS}
-      `);
-
-      const result = { count: data.products.length, products: data.products };
+      const products = await fetchProducts();
+      const result = { count: products.length, products };
 
       return {
         // content: texto que lee el modelo (compatibilidad con todos los clientes)
@@ -125,79 +138,43 @@ server.registerTool(
 );
 
 // -------------------------------------------------------------
-// PASO 4: Herramienta update_product
+// PASO 4: Herramienta find_inconsistencies
 // -------------------------------------------------------------
+// SOLO IDENTIFICA problemas de formato en los datos; no corrige
+// nada. Por eso este servidor no expone ninguna herramienta que
+// modifique la base de datos.
 server.registerTool(
-  'update_product',
+  'find_inconsistencies',
   {
-    title: 'Actualizar producto',
+    title: 'Buscar inconsistencias',
     description:
-      'Modifica el precio, el stock y/o la categoría de un producto a partir de su ID. ' +
-      'Solo se cambian los campos enviados; se debe enviar al menos uno.',
-    inputSchema: {
-      id: productId,
-      price: z
-        .number()
-        .nonnegative('El precio no puede ser negativo')
-        .optional()
-        .describe('Nuevo precio (número mayor o igual a 0)'),
-      stock: z
-        .number()
-        .int('El stock debe ser un número entero')
-        .nonnegative('El stock no puede ser negativo')
-        .optional()
-        .describe('Nuevo stock (entero mayor o igual a 0)'),
-      category: z
-        .string()
-        .trim()
-        .min(1, 'La categoría no puede estar vacía')
-        .optional()
-        .describe('Nueva categoría (ej. "Electrónica", "Muebles")'),
-    },
+      'Revisa todos los productos y lista los errores de formato SIN modificar nada: ' +
+      'mayúsculas/minúsculas inconsistentes, categorías escritas de distintas formas, ' +
+      'espacios sobrantes, textos vacíos, precios negativos o en 0, stock negativo o con decimales, ' +
+      'valores nulos y nombres duplicados.',
+    inputSchema: {},
     outputSchema: {
-      product: productSchema.describe('Producto ya actualizado'),
+      totalProducts: z.number().int().describe('Cantidad de productos revisados'),
+      totalIssues: z.number().int().describe('Cantidad de inconsistencias encontradas'),
+      issues: z.array(issueSchema),
     },
     annotations: {
-      readOnlyHint: false,
-      destructiveHint: false, // modifica, pero no borra
-      idempotentHint: true, // repetir la misma llamada deja el mismo resultado
+      readOnlyHint: true,
       openWorldHint: true,
     },
   },
-  // Gracias a Zod, los argumentos ya llegan validados y tipados.
-  async ({ id, price, stock, category }) => {
-    // Construimos el input solo con los campos que se enviaron.
-    const input = Object.fromEntries(
-      Object.entries({ price, stock, category }).filter(([, v]) => v !== undefined)
-    );
-
-    if (Object.keys(input).length === 0) {
-      return toolError('debes indicar al menos uno de estos campos: price, stock o category.');
-    }
-
+  async () => {
     try {
-      // Usamos VARIABLES en vez de concatenar texto en la consulta:
-      // evita errores de formato e inyecciones, igual que en SQL.
-      const data = await graphqlRequest(
-        /* GraphQL */ `
-          mutation UpdateProduct($id: ID!, $input: UpdateProductInput!) {
-            updateProduct(id: $id, input: $input) { ...ProductFields }
-          }
-          ${PRODUCT_FIELDS}
-        `,
-        { id, input }
-      );
-
-      const result = { product: data.updateProduct };
+      const products = await fetchProducts();
+      const issues = findInconsistencies(products);
+      const result = { totalProducts: products.length, totalIssues: issues.length, issues };
 
       return {
-        content: [
-          { type: 'text', text: `Producto actualizado:\n${JSON.stringify(result.product, null, 2)}` },
-        ],
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         structuredContent: result,
       };
     } catch (err) {
-      return toolError(`no se pudo actualizar el producto ${id}: ${err.message}`);
+      return toolError(`no se pudieron revisar los productos: ${err.message}`);
     }
   }
 );
